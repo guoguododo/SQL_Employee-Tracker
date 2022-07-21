@@ -233,12 +233,12 @@ connection.connect(err => {
       const params = [answer.fistName, answer.lastName]
   
       // grab roles from roles table
-      const roleSql = `SELECT role.id, role.title FROM role`;
+      const roleSql = `SELECT role.role_id, role.title FROM role`;
     
-      connection.promise().query(roleSql, (err, data) => {
-        if (err) throw err; 
+      connection.query(roleSql, (err, data) => {
+        if (err) throw err;
         
-        const roles = data.map(({ id, title }) => ({ name: title, value: id }));
+        const roles = data.map(({ role_id, title }) => ({ name: title, value: role_id }));
   
         inquirer.prompt([
               {
@@ -254,7 +254,7 @@ connection.connect(err => {
   
                 const managerSql = `SELECT * FROM employee`;
   
-                connection.promise().query(managerSql, (err, data) => {
+                connection.query(managerSql, (err, data) => {
                   if (err) throw err;
   
                   const managers = data.map(({ id, first_name, last_name }) => ({ name: first_name + " "+ last_name, value: id }));
@@ -297,12 +297,11 @@ connection.connect(err => {
                         employee.last_name, 
                         department.name AS department
                  FROM employee 
-                 LEFT JOIN role ON employee.role_id = role.id 
-                 LEFT JOIN department ON role.department_id = department.id`;
-  
-    connection.promise().query(sql, (err, rows) => {
-      if (err) throw err; 
-      console.table(rows); 
+                 LEFT JOIN role ON employee.role_id = role.role_id 
+                 LEFT JOIN department ON role.department_id = department.department_id`;
+ connection.query(sql, (err, rows) => {
+    if (err) throw err;
+    console.table(rows); 
       firstattempt();
     });          
   };
@@ -312,10 +311,12 @@ connection.connect(err => {
   deleteRole = () => {
     const roleSql = `SELECT * FROM role`; 
   
-    connection.promise().query(roleSql, (err, data) => {
-      if (err) throw err; 
+
+    connection.query(roleSql, (err, data) => {
+        if (err) throw err;
+
   
-      const role = data.map(({ title, id }) => ({ name: title, value: id }));
+      const role = data.map(({ title, role_id }) => ({ name: title, value: role_id }));
   
       inquirer.prompt([
         {
@@ -327,7 +328,7 @@ connection.connect(err => {
       ])
         .then(roleChoice => {
           const role = roleChoice.role;
-          const sql = `DELETE FROM role WHERE id = ?`;
+          const sql = `DELETE FROM role WHERE role_id = ?`;
   
           connection.query(sql, role, (err, result) => {
             if (err) throw err;
@@ -344,7 +345,7 @@ connection.connect(err => {
     // get employees from employee table 
     const employeeSql = `SELECT * FROM employee`;
   
-    connection.promise().query(employeeSql, (err, data) => {
+    connection.query(employeeSql, (err, data) => {
       if (err) throw err; 
   
     const employees = data.map(({ id, first_name, last_name }) => ({ name: first_name + " "+ last_name, value: id }));
